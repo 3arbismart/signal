@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGNAL</title>
+  <!-- Police glitch / monospace -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="phase-1">
+
+  <!-- Effet de scanlines / bruit sur tout l'écran -->
+  <div id="scanlines"></div>
+
+  <!-- Barre de notifications en haut -->
+  <div id="notifications"></div>
+
+  <!-- Coin supérieur droit : sauvegarde manuelle + horodatage -->
+  <div id="topbar">
+    <span id="last-save">Dernière sauvegarde : jamais</span>
+    <button id="btn-save" class="ctrl-btn" title="Sauvegarder la partie">SAUVEGARDER</button>
+    <button id="btn-menu" class="ctrl-btn" title="Options de sauvegarde">SAVE/LOAD</button>
+    <button id="btn-reset" class="ctrl-btn danger" title="Effacer la partie et tout recommencer">RESET</button>
+  </div>
+
+  <!-- En-tête / titre du jeu -->
+  <header id="game-header">
+    <h1 class="glitch" data-text="SIGNAL">SIGNAL</h1>
+    <p id="phase-label">PHASE 1 — OPTIMISATION</p>
+  </header>
+
+  <!-- Disposition principale : 3 colonnes -->
+  <main id="layout">
+
+    <!-- COLONNE GAUCHE : statistiques -->
+    <section id="panel-stats" class="panel">
+      <h2>STATISTIQUES</h2>
+
+      <div class="stat-block" id="stat-likes">
+        <span class="stat-name">Likes</span>
+        <span class="stat-value" id="val-likes">0</span>
+        <span class="stat-rate" id="rate-likes">0/s</span>
+      </div>
+
+      <div class="stat-block hidden" id="stat-opinions">
+        <span class="stat-name">Opinions</span>
+        <span class="stat-value" id="val-opinions">0</span>
+        <span class="stat-rate" id="rate-opinions">0/s</span>
+      </div>
+
+      <div class="stat-block hidden" id="stat-dependances">
+        <span class="stat-name">Dépendances</span>
+        <span class="stat-value" id="val-dependances">0</span>
+        <span class="stat-rate" id="rate-dependances">0/s</span>
+      </div>
+
+      <div class="stat-block hidden" id="stat-controle">
+        <span class="stat-name">Contrôle</span>
+        <span class="stat-value" id="val-controle">0</span>
+        <span class="stat-rate" id="rate-controle">0/s</span>
+      </div>
+
+      <!-- Indice moral, apparaît en phase 2 -->
+      <div class="stat-block hidden" id="stat-moral">
+        <span class="stat-name">Indice moral</span>
+        <span class="stat-value" id="val-moral">100%</span>
+        <div class="moral-bar"><div id="moral-fill"></div></div>
+      </div>
+
+      <hr>
+      <div class="stat-block small">
+        <span class="stat-name">Temps de jeu</span>
+        <span class="stat-value" id="val-time">00:00:00</span>
+      </div>
+      <div class="stat-block small">
+        <span class="stat-name">Total likes</span>
+        <span class="stat-value" id="val-total-likes">0</span>
+      </div>
+      <div class="stat-block small hidden" id="stat-total-opinions">
+        <span class="stat-name">Total opinions</span>
+        <span class="stat-value" id="val-total-opinions">0</span>
+      </div>
+    </section>
+
+    <!-- COLONNE CENTRE : zone de clic + messages de la phase 3 -->
+    <section id="panel-center" class="panel">
+      <div id="ai-message" class="hidden"></div>
+
+      <button id="click-btn" aria-label="Générer des likes">
+        <span id="click-label">GÉNÉRER</span>
+        <span id="click-sub">+<span id="click-amount">1</span> like</span>
+      </button>
+
+      <div id="progress-phase">
+        <span id="progress-text">Objectif : 1 M de likes pour la PHASE 2</span>
+        <div class="prog-bar"><div id="prog-fill"></div></div>
+      </div>
+
+      <!-- Zone du choix final (phase 3) -->
+      <div id="final-choice" class="hidden">
+        <p id="final-text">CHOIX FINAL</p>
+        <div class="final-buttons">
+          <button id="ending-a" class="ending-btn red">MAXIMISER</button>
+          <button id="ending-b" class="ending-btn cyan">S'ARRÊTER</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLONNE DROITE : générateurs + améliorations -->
+    <section id="panel-upgrades" class="panel">
+      <div class="tabs">
+        <button class="tab active" data-tab="buildings">GÉNÉRATEURS</button>
+        <button class="tab" data-tab="upgrades">AMÉLIORATIONS</button>
+      </div>
+      <div id="list-buildings" class="list active"></div>
+      <div id="list-upgrades" class="list"></div>
+    </section>
+  </main>
+
+  <!-- Superposition d'écran final (endings) -->
+  <div id="ending-screen" class="hidden">
+    <div id="data-rain"></div>
+    <div id="ending-content">
+      <p id="ending-message"></p>
+      <div id="ending-stats"></div>
+      <button id="btn-restart" class="hidden">RECOMMENCER</button>
+    </div>
+  </div>
+
+  <!-- Fenêtre modale : import / export de sauvegarde -->
+  <div id="save-modal" class="modal hidden">
+    <div class="modal-box">
+      <h2>SAUVEGARDE</h2>
+      <button id="btn-export" class="ctrl-btn">EXPORTER (copier dans le presse-papiers)</button>
+      <p class="modal-hint">Collez un code de sauvegarde puis cliquez sur Importer :</p>
+      <textarea id="import-field" placeholder="Collez votre code de sauvegarde ici..."></textarea>
+      <div class="modal-actions">
+        <button id="btn-import" class="ctrl-btn">IMPORTER</button>
+        <button id="btn-close-modal" class="ctrl-btn">FERMER</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup de progression hors-ligne -->
+  <div id="offline-popup" class="modal hidden">
+    <div class="modal-box">
+      <h2>PENDANT VOTRE ABSENCE</h2>
+      <p id="offline-text"></p>
+      <button id="btn-close-offline" class="ctrl-btn">RÉCUPÉRER</button>
+    </div>
+  </div>
+
+  <!-- Glitch d'overlay pour les transitions de phase -->
+  <div id="glitch-overlay" class="hidden"><span id="glitch-text"></span></div>
+
+  <!-- Infobulle flottante -->
+  <div id="tooltip" class="hidden"></div>
+
+  <!-- Scripts : l'ordre n'a pas d'importance car init() s'exécute après le chargement complet -->
+  <script src="js/upgrades.js"></script>
+  <script src="js/phases.js"></script>
+  <script src="js/save.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
